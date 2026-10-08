@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vortex — мессенджер</title>
+  <meta name="description" content="Vortex — мессенджер с чатами, группами, каналами, голосовыми сообщениями и звонками.">
+  <meta property="og:title" content="Vortex — мессенджер">
+  <meta property="og:description" content="Чаты, группы, каналы, голосовые и звонки. Установите приложение или откройте в браузере.">
+  <meta property="og:image" content="icons/Icon-512.png">
+  <!-- Served at /info, so every address here is absolute -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="landing.css">
+  <style>
+    .hero img.mark { width: 96px; height: 96px; margin-bottom: 22px; filter: drop-shadow(0 12px 30px rgba(42,171,238,.45)); }
+    .beta { display: inline-block; margin-left: 8px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700;
+            color: #fff; background: rgba(255,255,255,.14); vertical-align: middle; letter-spacing: .04em; }
+  </style>
+</head>
+<body>
+<nav><div class="nav-inner glass">
+  <a href="./" class="logo"><img src="icons/Icon-192.png" alt="">Vortex</a>
+  <a href="https://solar-newt-5396.ru.tuna.am/" class="btn primary small">Открыть</a>
+</div></nav>
+
+<div class="wrap">
+  <section class="hero">
+    <img class="mark" src="icons/Icon-512.png" alt="">
+    <div><div class="tag glass" id="version">Версия 0.1.2</div></div>
+    <h1>Vortex <span>мессенджер</span><span class="beta">БЕТА</span></h1>
+    <p class="lead">Личные чаты, группы и каналы, голосовые сообщения, аудио- и видеозвонки. Работает на Android и в браузере на любом устройстве.</p>
+    <div class="actions">
+      <a id="apk" class="btn primary" href="https://github.com/wwwmnl119-eng/vortex-app/releases/latest/download/vortex.apk">Скачать для Android</a>
+      <a href="https://solar-newt-5396.ru.tuna.am/" class="btn ghost" id="web">Открыть в браузере</a>
+    </div>
+    <p class="note" id="note">Файл 70 МБ · Android 7 и новее</p>
+  </section>
+
+  <section class="steps glass" id="android">
+    <h2>Как установить на Android</h2>
+    <ol>
+      <li>Нажмите <b>«Скачать для Android»</b> и дождитесь загрузки файла.</li>
+      <li>Откройте скачанный файл. Если телефон спросит — разрешите установку из этого источника.</li>
+      <li>Google Play Защита может предупредить, что приложение ей не знакомо: оно распространяется не через магазин. Нажмите <b>«Все равно установить»</b>.</li>
+      <li>Зарегистрируйтесь или войдите. Обновления дальше приходят прямо в приложении.</li>
+    </ol>
+  </section>
+
+  <section class="steps glass" id="ios">
+    <h2>iPhone и компьютер</h2>
+    <ol>
+      <li>Откройте Vortex в браузере — кнопка <b>«Открыть в браузере»</b> выше.</li>
+      <li>При первом входе сервис, через который работает сервер, покажет предупреждение — подождите пару секунд и нажмите <b>«Посетить»</b>.</li>
+      <li>На iPhone в Safari нажмите <b>«Поделиться»</b> → <b>«На экран „Домой“»</b>: Vortex появится на рабочем столе как приложение.</li>
+    </ol>
+  </section>
+
+  <section class="grid">
+    <div class="card glass"><div class="ico">💬</div><h3>Чаты и группы</h3><p>Ответы, пересылка, реакции, закреплённые сообщения, фото и файлы.</p></div>
+    <div class="card glass"><div class="ico">🎤</div><h3>Голос и звонки</h3><p>Голосовые сообщения, аудио- и видеозвонки один на один.</p></div>
+    <div class="card glass"><div class="ico">🔔</div><h3>Уведомления</h3><p>На Android о новых сообщениях сообщает push; любой чат можно заглушить.</p></div>
+    <div class="card glass"><div class="ico">🛡️</div><h3>Под вашим контролем</h3><p>Блокировка собеседника, жалобы и удаление аккаунта со всеми сообщениями — в один шаг.</p></div>
+  </section>
+
+  <section class="steps glass">
+    <h2>Это бета-версия</h2>
+    <ol style="list-style: none; padding-left: 0;">
+      <li>Сервис в разработке: возможны перерывы в работе, а данные могут быть сброшены.</li>
+      <li>Не отправляйте сюда то, что нельзя потерять, и то, что должно остаться тайной.</li>
+      <li>Нашли ошибку или что-то мешает — напишите в чат пользователю <b>Vortex</b>.</li>
+    </ol>
+  </section>
+</div>
+
+<footer><div class="wrap"><p>© 2026 Vortex Messenger</p></div></footer>
+
+<script>
+  
+
+  // Whoever is not on Android gets the browser version as the main button
+  if (!/Android/i.test(navigator.userAgent)) {
+    document.getElementById('web').className = 'btn primary';
+    document.getElementById('apk').className = 'btn ghost';
+  }
+</script>
+</body>
+</html>
