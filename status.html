@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vortex — статус сервера</title>
+  <meta name="description" content="Работает ли сервер Vortex прямо сейчас.">
+  <!-- Served at /status, so every address here is absolute; publish-site.js rewrites them for the copy on GitHub Pages -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="landing.css">
+  <style>
+    .state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 36px 24px; margin-top: 28px; }
+    .dot { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; margin-bottom: 18px;
+           background: rgba(255,255,255,.1); transition: background .3s; }
+    .dot.ok { background: rgba(77,202,136,.22); box-shadow: 0 0 0 10px rgba(77,202,136,.08); }
+    .dot.work { background: rgba(255,179,71,.22); box-shadow: 0 0 0 10px rgba(255,179,71,.08); }
+    .dot.down { background: rgba(255,107,107,.22); box-shadow: 0 0 0 10px rgba(255,107,107,.08); }
+    .state h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -.5px; }
+    .state p { margin: 0; opacity: .8; max-width: 440px; line-height: 1.5; }
+    .meta { margin-top: 18px; font-size: 13px; opacity: .6; }
+    .rows { margin-top: 16px; padding: 6px 22px; }
+    .rows div { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 15px; }
+    .rows div:last-child { border-bottom: 0; }
+    .rows span:first-child { opacity: .65; }
+    .rows span:last-child { font-weight: 600; text-align: right; }
+  </style>
+</head>
+<body>
+<nav><div class="nav-inner glass">
+  <a href="./" class="logo"><img src="icons/Icon-192.png" alt="">Vortex</a>
+  <a href="https://vortex-msg.fxtun.ru/" class="btn primary small">Открыть</a>
+</div></nav>
+
+<div class="wrap">
+  <section class="state glass">
+    <div class="dot" id="dot">⏳</div>
+    <h1 id="title">Проверяем…</h1>
+    <p id="text">Спрашиваем сервер, как у него дела.</p>
+    <div class="meta" id="meta"></div>
+  </section>
+
+  <section class="rows glass">
+    <div><span>Сервер</span><span id="row-server">—</span></div>
+    <div><span>Версия приложения</span><span id="row-version">—</span></div>
+    <div><span>Регистрация</span><span id="row-reg">—</span></div>
+  </section>
+
+  <section class="steps glass">
+    <h2>Что это значит</h2>
+    <ol style="list-style: none; padding-left: 0;">
+      <li><b>Работает</b> — можно пользоваться. Если приложение не подключается, проверьте свой интернет.</li>
+      <li><b>Обновляется</b> — ставится новая версия. Обычно это несколько минут, приложение подключится само.</li>
+      <li><b>Недоступен</b> — сервер выключен или до него не дойти. Vortex работает на домашнем компьютере, поэтому ночью и при перезагрузке он бывает недоступен.</li>
+    </ol>
+  </section>
+</div>
+
+<footer><div class="wrap"><p>© 2026 Vortex Messenger · страница обновляется сама каждые 20 секунд</p></div></footer>
+
+<script>
+  var SERVER = "https://vortex-msg.fxtun.ru";
+
+  function set(id, value) { document.getElementById(id).textContent = value; }
+  function show(kind, icon, title, text) {
+    document.getElementById('dot').className = 'dot ' + kind;
+    set('dot', icon); set('title', title); set('text', text);
+  }
+
+  function check() {
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 9000);
+    fetch(SERVER + '/api/version', { cache: 'no-store', signal: controller.signal })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (v) {
+        if (v.maintenance) {
+          show('work', '🛠️', 'Обновляется', v.maintenance_message || 'Идёт обновление сервера. Обычно это занимает несколько минут.');
+          set('row-server', 'идёт обновление');
+        } else {
+          show('ok', '✅', 'Работает', 'Сервер отвечает, мессенджером можно пользоваться.');
+          set('row-server', 'в сети');
+        }
+        set('row-version', v.latest_version || '—');
+        set('row-reg', v.registration_enabled === false ? 'закрыта' : 'открыта');
+      })
+      .catch(function () {
+        show('down', '⛔', 'Недоступен', 'Сервер не отвечает. Возможно, он выключен или перезапускается — загляните чуть позже.');
+        set('row-server', 'не отвечает');
+      })
+      .then(function () {
+        clearTimeout(timer);
+        var now = new Date();
+        set('meta', 'Проверено в ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0'));
+      });
+  }
+  check();
+  setInterval(check, 20000);
+</script>
+</body>
+</html>
