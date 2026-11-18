@@ -1,0 +1,79 @@
+# Copied by server/scripts/publish-site.js into the public repository as .github/workflows/watch.yml.
+# A watcher outside the server: every 5 minutes GitHub asks https://usevortex.site/health. When the server does not
+# answer three times in a row, it puts a word into status.json (the apps read it when the server is silent, and the
+# status page shows it) and that one run fails, so GitHub e-mails the owner of the repository once per outage,
+# not every 5 minutes. When the server is back,
+# it takes away only its own word: a note written by hand (`node scripts/works.js note`) stays.
+# GitHub may start a scheduled run late, by 5–20 minutes when it is busy. It also switches the schedule off in a
+# repository nobody has pushed to for 60 days: a release (publish-site.js) wakes it again.
+name: Watch the server
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ask the server
+        id: ask
+        run: |
+          up=false
+          for i in 1 2 3; do
+            if curl -fsS --max-time 15 https://usevortex.site/health > /dev/null; then up=true; break; fi
+            sleep 30
+          done
+          echo "up=$up" >> "$GITHUB_OUTPUT"
+
+      - name: Put up or take down the word on the status page
+        id: word
+        env:
+          UP: ${{ steps.ask.outputs.up }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const now = new Date();
+            let cur = {};
+            try { cur = JSON.parse(fs.readFileSync("status.json", "utf8")); } catch {}
+            const hand = cur.message && !cur.auto && (!cur.expires || new Date(cur.expires) > now);
+            let next = null;
+            // Its own word lives a day; a longer outage renews it (and writes to the owner again)
+            const ownLive = cur.auto && cur.expires && new Date(cur.expires) > now;
+            if (process.env.UP !== "true" && !hand && !ownLive) {
+              next = { message: "Сервер Vortex сейчас недоступен. Когда он вернётся, всё заработает само — сообщения не потеряются.",
+                auto: true, updated: now.toISOString(), expires: new Date(now.getTime() + 86400000).toISOString() };
+            } else if (process.env.UP === "true" && cur.auto) {
+              next = { message: "", updated: now.toISOString() };
+            }
+            if (next) {
+              fs.writeFileSync("status.json", JSON.stringify(next, null, 1) + "\n");
+              // Only the run that found the server gone tells the owner: one letter per outage
+              if (next.auto) fs.appendFileSync(process.env.GITHUB_OUTPUT, "went=down\n");
+            }
+          '
+          if ! git diff --quiet -- status.json; then
+            git config user.name "Vortex watcher"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Status: server ${{ steps.ask.outputs.up == 'true' && 'back' || 'down' }}" -- status.json
+            # publish-site.js or a note by hand may have pushed a moment ago
+            git pull --rebase origin main
+            git push
+          fi
+
+      - name: Tell the owner
+        if: steps.word.outputs.went == 'down'
+        run: |
+          echo "::error::https://usevortex.site does not answer"
+          exit 1
